@@ -10,7 +10,137 @@ const outputPath = path.join(OUTPUT_DIR, "team.html");
 
 const render = require("./lib/htmlRenderer");
 
+const inquireAnswers = [];
 
+function createTeam() {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        message: "What is the persons role?",
+        choices: ["Engineer", "Intern", "Manager"],
+        name: "role",
+      },
+      {
+        type: "input",
+        message: "What is the persons name?",
+        name: "name",
+      },
+      {
+        type: "input",
+        message: "What is the persons id?",
+        name: "id",
+      },
+      {
+        type: "input",
+        message: "What is the persons Email?",
+        name: "email",
+      },
+      {
+        type: "input",
+        message: "What is the interns school?",
+        name: "school",
+        when: (answers) => {
+          return answers.role === "Intern";
+        },
+      },
+      {
+        type: "input",
+        message: "What is the engineers GitHub?",
+        name: "github",
+        when: (answers) => {
+          return answers.role === "Engineer";
+        },
+      },
+      {
+        type: "input",
+        message: "What is the Managers office number?",
+        name: "officeNumber",
+        when: (answers) => {
+          return answers.role === "Manager";
+        },
+      },
+      {
+        type: "confirm",
+        message: "Would you like another Employee?",
+        name: "recruit",
+      },
+    ])
+    .then((answers) => {
+      console.log(answers);
+      inquireAnswers.push(answers);
+      console.log(inquireAnswers);
+      if (answers.recruit) {
+        createTeam();
+      } else {
+        const teamMembers = inquireAnswers.map((recruited) => {
+          switch (recruited.role) {
+            case "Engineer":
+              console.log(
+                new Engineer(
+                  recruited.name,
+                  recruited.id,
+                  recruited.email,
+                  recruited.github
+                )
+              );
+              return new Engineer(
+                recruited.name,
+                recruited.id,
+                recruited.email,
+                recruited.github
+              );
+            case "Intern":
+              console.log(
+                new Intern(
+                  recruited.name,
+                  recruited.id,
+                  recruited.email,
+                  recruited.school
+                )
+              );
+              return new Intern(
+                recruited.name,
+                recruited.id,
+                recruited.email,
+                recruited.school
+              );
+            case "Manager":
+              console.log(
+                new Manager(
+                  recruited.name,
+                  recruited.id,
+                  recruited.email,
+                  recruited.officeNumber
+                )
+              );
+              return new Manager(
+                recruited.name,
+                recruited.id,
+                recruited.email,
+                recruited.officeNumber
+              );
+            default:
+              console.log("Unknown employee.");
+          }
+        });
+        console.log(teamMembers);
+        fs.writeFile(outputPath, render(teamMembers), (err) => {
+          if (err) {
+            throw err;
+          }
+          console.log("Saved!");
+        });
+      }
+    })
+    .catch((err) => {
+      if (err) {
+        throw ("Error: ", err);
+      }
+      console.log("Saved!");
+    });
+}
+createTeam();
 // Write code to use inquirer to gather information about the development team members,
 // and to create objects for each team member (using the correct classes as blueprints!)
 
